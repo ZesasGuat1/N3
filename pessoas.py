@@ -7,8 +7,7 @@ import yaml
 app = Flask(__name__)
 config = yaml.load(open('database.yaml'))
 client = MongoClient(config['uri'])
-# db = client.lin_flask
-db = client['lin_flask']
+db = client['crud_pessoa']
 CORS(app)
 
 @app.route('/')
@@ -22,31 +21,36 @@ def data():
     if request.method == 'POST':
         body = request.json
         nome = body['nome']
-        idade = body['idade']
+        cpf = body['cpf']
+        email = body['email']
 
         # db.users.insert_one({
-        db['users'].insert_one({
-            "nome":nome,
-            "idade": idade
+        db['pessoa'].insert_one({
+            "nome": nome,
+            "cpf" : cpf,
+            "email": email
         })
         return jsonify({
-            'status': 'Cadastrado ',
+            'status': 'Data is posted to MongoDB!',
             'nome': nome,
-            'idade': idade
+            'cpf' : cpf,
+            'email': email
         })
     
-   
+    # GET all data from database
     if request.method == 'GET':
-        allData = db['users'].find()
+        allData = db['pessoa'].find()
         dataJson = []
         for data in allData:
             id = data['_id']
             nome = data['nome']
-            idade = data['idade']
+            cpf = data['cpf']
+            email = data['email']
             dataDict = {
                 'id': str(id),
-                'nome': name,
-                'idade': idade
+                'nome': nome,
+                'cpf': cpf,
+                'email' : email
             }
             dataJson.append(dataDict)
         print(dataJson)
@@ -57,41 +61,44 @@ def onedata(id):
 
     # GET a specific data by id
     if request.method == 'GET':
-        data = db['users'].find_one({'_id': ObjectId(id)})
+        data = db['pessoa'].find_one({'_id': ObjectId(id)})
         id = data['_id']
         nome = data['nome']
-        idade = data['idade']
+        cpf = data['cpf']
+        email = data['email']
         dataDict = {
             'id': str(id),
             'nome': nome,
-            'idade': idade
+            'cpf': cpf,
+            'email' : email
         }
         print(dataDict)
         return jsonify(dataDict)
         
     # DELETE a data
     if request.method == 'DELETE':
-        db['users'].delete_many({'_id': ObjectId(id)})
-        print('\n # Removido # \n')
-        return jsonify({'status': 'Data id: ' + id + ' Removido'})
+        db['pessoa'].delete_many({'_id': ObjectId(id)})
+        print('\n # Deletion successful # \n')
+        return jsonify({'status': 'Data id: ' + id + ' is deleted!'})
 
     # UPDATE a data by id
     if request.method == 'PUT':
         body = request.json
         nome = body['nome']
-        idade = body['idade']
+        cpf = body['cpf']
+        email = body['email']
 
-        db['users'].update_one(
+        db['pessoa'].update_one(
             {'_id': ObjectId(id)},
             {
                 "$set": {
                     "nome":nome,
-                    "idade":idade
+                    "cpf":cpf
                 }
             }
         )
 
-        print('\n # Alerado com sucesso # \n')
+        print('\n # Update successful # \n')
         return jsonify({'status': 'Data id: ' + id + ' is updated!'})
 
 if __name__ == '__main__':
